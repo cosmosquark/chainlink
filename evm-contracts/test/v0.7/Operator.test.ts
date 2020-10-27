@@ -347,7 +347,6 @@ describe('Operator', () => {
         const responseEvent = receipt.events?.[0]
         assert.equal(responseEvent?.event, 'OracleResponse')
         assert.equal(responseEvent?.args?.[0], request.requestId)
-        assert.equal(responseEvent?.args?.[5], fulfillParams[5])
       })
     })
 
@@ -416,7 +415,6 @@ describe('Operator', () => {
           const responseEvent = receipt.events?.[0]
           assert.equal(responseEvent?.event, 'OracleResponse')
           assert.equal(responseEvent?.args?.[0], request.requestId)
-          assert.equal(responseEvent?.args?.[5], fulfillParams[5])
         })
 
         it('does not allow a request to be fulfilled twice', async () => {
