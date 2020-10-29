@@ -12,21 +12,24 @@ import (
 	"github.com/smartcontractkit/chainlink/core/store/models"
 	"github.com/smartcontractkit/chainlink/core/store/models/ocrkey"
 	"github.com/smartcontractkit/chainlink/core/store/models/p2pkey"
+	"github.com/smartcontractkit/chainlink/core/utils"
 )
 
 type KeyStore struct {
 	*gorm.DB
-	p2pkeys map[models.PeerID]p2pkey.Key
-	ocrkeys map[models.Sha256Hash]ocrkey.KeyBundle
-	mu      *sync.RWMutex
+	p2pkeys      map[models.PeerID]p2pkey.Key
+	ocrkeys      map[models.Sha256Hash]ocrkey.KeyBundle
+	scryptParams utils.ScryptParams
+	mu           *sync.RWMutex
 }
 
-func NewKeyStore(db *gorm.DB) *KeyStore {
+func NewKeyStore(db *gorm.DB, scryptParams utils.ScryptParams) *KeyStore {
 	return &KeyStore{
-		DB:      db,
-		p2pkeys: make(map[models.PeerID]p2pkey.Key),
-		ocrkeys: make(map[models.Sha256Hash]ocrkey.KeyBundle),
-		mu:      new(sync.RWMutex),
+		DB:           db,
+		p2pkeys:      make(map[models.PeerID]p2pkey.Key),
+		ocrkeys:      make(map[models.Sha256Hash]ocrkey.KeyBundle),
+		scryptParams: scryptParams,
+		mu:           new(sync.RWMutex),
 	}
 }
 
@@ -79,7 +82,7 @@ func (ks KeyStore) GenerateEncryptedP2PKey(password string) (p2pkey.Key, p2pkey.
 	if err != nil {
 		return p2pkey.Key{}, p2pkey.EncryptedP2PKey{}, errors.Wrapf(err, "while generating new p2p key")
 	}
-	enc, err := key.ToEncryptedP2PKey(password)
+	enc, err := key.ToEncryptedP2PKey(password, ks.scryptParams)
 	if err != nil {
 		return p2pkey.Key{}, p2pkey.EncryptedP2PKey{}, errors.Wrapf(err, "while encrypting p2p key")
 	}
@@ -123,7 +126,7 @@ func (ks KeyStore) GenerateEncryptedOCRKeyBundle(password string) (ocrkey.KeyBun
 	if err != nil {
 		return ocrkey.KeyBundle{}, ocrkey.EncryptedKeyBundle{}, errors.Wrapf(err, "while generating the new OCR key bundle")
 	}
-	enc, err := key.Encrypt(password)
+	enc, err := key.Encrypt(password, ks.scryptParams)
 	if err != nil {
 		return ocrkey.KeyBundle{}, ocrkey.EncryptedKeyBundle{}, errors.Wrapf(err, "while encrypting the new OCR key bundle")
 	}

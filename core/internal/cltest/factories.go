@@ -838,7 +838,7 @@ func MustInsertOffchainreportingKeys(t *testing.T, db *gorm.DB, dependencies ...
 ) {
 	t.Helper()
 
-	keystore := offchainreporting.NewKeyStore(db)
+	keystore := offchainreporting.NewKeyStore(db, utils.FastScryptParams)
 
 	var peerID models.PeerID
 	var p2pKey *p2pkey.EncryptedP2PKey
